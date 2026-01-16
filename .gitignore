@@ -1,4 +1,6 @@
-# Ignore raw & interim data files
+# -------------------------
+# Data (default: ignore)
+# -------------------------
 data/raw/*
 data/interim/*
 
@@ -6,16 +8,31 @@ data/interim/*
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 
+# Keep GTFS static data (commit these)
+!data/raw/gtfs_static/
+!data/raw/gtfs_static/**
+
+#Ignore GTFS real-time data (do NOT commit)
+data/raw/gtfs_rt/
+data/raw/gtfs_rt/**
+*.pb
+
 # Optional: ignore processed if large
 # data/processed/*
 
+# -------------------------
 # Secrets
+# -------------------------
 .env
 *.key
 
+# -------------------------
 # Jupyter
+# -------------------------
 .ipynb_checkpoints/
 
+# -------------------------
 # OS
+# -------------------------
 .DS_Store
 Thumbs.db
