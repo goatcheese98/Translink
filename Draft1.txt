@@ -1,0 +1,90 @@
+Project Proposal and Initial Analysis
+Proposal - Oiza & Anny
+1. What is your proposed business idea / product / tool? Who are the intended users, and what will they use it for? What information / features will they have available at prediction time? - Oiza
+2. What is the supervised learning problem that you want to solve for your business proposal? What are the features you want to use and the outcome you will predict? - Oiza
+3. What metrics will you use to assess the success of your proof of concept? - Oiza
+4. What dataset will you use? How does it support the goals of your project, and what are its limitations? - Anny
+5. What methods and analysis do you plan to perform? Feature generation, models to try, interpretation, etc. This is primarily for you to receive feedback. - Anny
+
+
+
+Initial analysis - Jay & Rohan
+1. Plot the distributions of features and outcomes in your dataset.
+2. Make a first attempt at solving your problem without ML, to serve as a baseline (e.g., simply predict the majority class). How well does this perform on the metrics you have defined?
+3. Make a first attempt at solving your problem using a linear model (linear or logistic regression). How well does this perform on the metrics you have defined? 
+
+
+Final Proofreading - Anny
+
+
+
+
+
+
+Proposed Tool
+Our proposed project is a short-term transit delay prediction tool for Vancouver commuters, focused on bus services operated by TransLink. The key goal of the tool is to predict whether a bus trip is likely to experience a significant delay (e.g., greater than 15 minutes) within a short time horizon, such as 30 minutes to one hour before departure.
+
+This tool is intended primarily for daily commuters who want timely and actionable information shortly before starting their trip, when they can still adjust their plans (for example, leaving earlier, choosing a different route, or switching modes). A secondary group of users could include transit planners or operations teams interested in identifying patterns related to major delay events and bus bunching.
+
+At prediction time, the model would rely on information that is available in the short term. In addition to scheduled route and stop information, the tool would incorporate real-time locations and behaviour of other buses running on the same route, since bus bunching is a known contributor to large delays. Other available features include time of day, day of week, and recent historical delay patterns. By focusing on short-term predictions, the tool aims to provide more accurate and practically useful delay warnings.
+
+Supervised learning problem
+The supervised learning problem we want to solve is to predict major transit delay events in the short term. Specifically, we will frame this as a binary classification problem, where the outcome variable indicates whether a given bus trip will experience a major delay (10 minutes or more) within the next 30–60 minutes.
+
+We selected a 10-minute threshold because it balances actionability for commuters with statistical feasibility for machine learning. A 10-minute delay is sufficient for commuters to adjust their plans (leave earlier, choose alternate routes, or switch modes) while providing enough positive examples (approximately 8% of trips) for our model to learn meaningful patterns. This threshold captures delays at the 93rd percentile, focusing on genuinely problematic trips while maintaining sufficient data for robust model training.
+
+This framing aligns with commuter needs, since identifying unusually large delays is often more valuable than predicting small, routine fluctuations. It also focuses on more meaningful delay events rather than all minor delays.
+
+The features we plan to use include:
+Scheduled route, stop, and departure time information (from GTFS static data)
+Real-time locations and spacing of other buses on the same route (to capture bus bunching effects)
+Recent delay behaviour of nearby or preceding buses on the route
+Time-based features such as hour of day and day of week
+
+The outcome variable will be constructed from real-time performance data, indicating whether the observed delay for a trip exceeds 10 minutes.
+
+Metrics to assess the success of the proof of concept
+To evaluate the success of our proof of concept, we will assess model performance on a held-out test set, using metrics that are appropriate for a binary classification problem with potentially imbalanced classes.
+
+Key metrics will include:
+Precision, to measure how often predicted major delays are actually large delays
+Recall, to measure how well the model identifies true major delay events
+F1 score, to balance precision and recall and provide a single summary metric
+
+Accuracy alone may be misleading if major delays are relatively rare, so these additional metrics are important for understanding practical usefulness. We will also compare our model’s performance to a simple baseline, such as predicting no major delay for all trips, to ensure that the model provides meaningful improvement.
+
+Beyond standard ML metrics, we will define success using real-world criteria that reflect how the tool could be used in practice. Specifically, a successful proof of concept would demonstrate:
+Meaningful identification of major delay cases: the model correctly flags a substantial portion of large delay events (e.g., >15 minutes) that commuters would realistically want to avoid
+Actionable lead time: predictions are accurate using only information available 30-60 minutes before departure, making them useful for trip planning or operational intervention
+Reduction in negative commuter experiences: even a modest improvement in recall of major delays could translate into fewer missed connections, reduced waiting time, or avoided late arrivals
+Operational value for transit agencies: identifying high-risk trips in advance could help prioritize interventions such as dispatch adjustments or monitoring bus bunching, potentially saving staff time and reducing service disruption
+
+Overall, the proof of concept will be considered successful if it can reliably identify major delay events better than the baseline, using realistic inputs, and show clear potential for improving decision-making for both commuters and transit operators.
+
+Dataset to use and the way it supports the goals of our project
+As mentioned previously, our core dataset will be TransLink GTFS Static. This is the schedule and structure data (routes, stops, trips, stop times, shapes). We already have the exact files downloaded (routes.txt, stops.txt, trips.txt, stop_times.txt, etc.), so this gives us the “planned” part of each trip, like where the bus is supposed to go and when it is supposed to arrive. 
+To actually build a delay prediction problem, we also need the “what actually happened” part. For that, we plan to use TransLink GTFS Realtime, which includes vehicle positions, trip updates, and service alerts. GTFS Realtime is designed to sit on top of the static schedule and provide real-time information like predicted arrivals and disruptions. This is also directly connected to the feedback about bus bunching, because vehicle positions let us measure spacing between buses on the same route. 
+Together, these datasets directly support the project goal of predicting short-term major delay events, since they allow us to compare scheduled versus observed performance using information that is available shortly before departure.
+One more dataset we will use is the City of Vancouver Road Ahead. Specifically, road closures and construction projects are useful because they represent real disruptions that can slow buses down, and they are independent of the transit feed. We can map closures or construction near a stop or along a route and treat that as a disruption flag. 
+
+
+Limitations of the dataset
+GTFS Static alone does not contain delays. It is just the planned schedule, so it cannot produce the outcome variable by itself.
+GTFS Realtime is not guaranteed to be clean. Updates can be missing or uneven depending on vehicles and time periods, so we will likely need filtering and sanity checks. Real-time updates are not guaranteed for every vehicle or every time period, and update frequency can vary across routes and days. As a result, some trips may have missing or inconsistent delay observations, requiring filtering and sanity checks during preprocessing.
+There could be more missing or noisy real-time updates to be found in both datasets, limited historical coverage for some features, and the fact that not all causes of delays (such as passenger surges or driver-level behaviour) are observable.
+Even with Road Ahead, we still will not capture every cause of delays (driver behaviour, passenger surges, random incidents). So we expect the model to be better at repeatable patterns than rare one-off events.
+
+Methods and Analysis (optional, need updates, put it here as reference~)
+We frame this project as a supervised learning problem, where the goal is to predict whether a bus trip will experience a major delay in the short term.
+Specifically, we formulate the task as a binary classification problem, where the outcome variable indicates whether a given bus trip experiences a delay exceeding a predefined threshold (e.g., more than 15 minutes) within the next 30–60 minutes. This framing focuses on unusually large delays, which are more actionable for commuters than small, routine fluctuations.
+The features used in the model will be constructed from information available prior to the scheduled departure time and include:
+Scheduled route, stop, trip, and departure time information from GTFS static data
+Real-time vehicle locations and spacing of other buses on the same route to capture bus bunching effects
+Recent delay behaviour of nearby or preceding buses on the same route
+Time-based features such as hour of day and day of week
+Indicators for nearby road closures or construction when available
+Categorical variables such as route and stop identifiers will be encoded appropriately, and all features will be aligned to ensure no future information is leaked into the prediction.
+We will begin with simple baseline models, such as predicting no major delay for all trips or using historical delay rates by route and time of day. These baselines provide a reference point for evaluating whether the supervised models add meaningful predictive value.
+We will then fit a logistic regression model as the primary classifier, due to its interpretability and alignment with the classification methods covered in class. If time permits, we may explore a tree-based model to capture non-linear relationships, particularly for features related to bus bunching.
+Model performance will be evaluated on a held-out test set using metrics appropriate for imbalanced classification, including precision, recall, and F1 score. Results will be interpreted both quantitatively and qualitatively, with attention to which features contribute most to identifying major delay events.
+
