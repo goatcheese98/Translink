@@ -63,85 +63,75 @@ print(f"Total records: {len(data):,}")
 print(f"Major delays (≥10 min): {data['delay_10plus'].sum():,} ({data['delay_10plus'].sum()/len(data)*100:.2f}%)")
 
 # ============================================================================
-# FEATURE ENGINEERING
+# FEATURE ENGINEERING & SPLITTING (Leakage-Free)
 # ============================================================================
-print("\n[2/7] Engineering features...")
+print("\n[2/7] Feature Engineering & Splitting (Leakage-Free)...")
 
-# Calculate route-level statistics
-route_stats = data.groupby('route_id').agg({
+# 1. Split Data FIRST
+data_sorted = data.sort_values('timestamp').reset_index(drop=True)
+split_idx = int(len(data_sorted) * 0.8)
+
+train_df = data_sorted.iloc[:split_idx].copy()
+test_df = data_sorted.iloc[split_idx:].copy()
+
+print(f"Training set: {len(train_df)} samples")
+print(f"Test set:     {len(test_df)} samples")
+
+# 2. Compute stats on TRAIN
+route_stats = train_df.groupby('route_id').agg({
     'delay_min': ['mean', 'std', 'count'],
     'delay_10plus': 'mean'
 }).reset_index()
 route_stats.columns = ['route_id', 'route_avg_delay', 'route_std_delay', 'route_trip_count', 'route_delay_rate']
-data = data.merge(route_stats, on='route_id', how='left')
 
-# Calculate stop-level statistics
-stop_stats = data.groupby('stop_id').agg({
+stop_stats = train_df.groupby('stop_id').agg({
     'delay_min': ['mean', 'count'],
     'delay_10plus': 'mean'
 }).reset_index()
 stop_stats.columns = ['stop_id', 'stop_avg_delay', 'stop_trip_count', 'stop_delay_rate']
-data = data.merge(stop_stats, on='stop_id', how='left')
 
-# Fill NaN values
-data['route_std_delay'] = data['route_std_delay'].fillna(0)
+# Global means
+global_means = {
+    'route_delay_rate': train_df['delay_10plus'].mean(),
+    'route_avg_delay': train_df['delay_min'].mean(),
+    'stop_delay_rate': train_df['delay_10plus'].mean(),
+    'stop_avg_delay': train_df['delay_min'].mean()
+}
 
-print("Features created:")
-print("  • Temporal: hour, day_of_week, is_weekend, is_rush_hour, time_period")
-print("  • Route stats: avg_delay, std_delay, trip_count, delay_rate")
-print("  • Stop stats: avg_delay, trip_count, delay_rate")
+# 3. Apply to Train and Test
+def apply_stats(df, r_stats, s_stats, g_means):
+    df = df.merge(r_stats, on='route_id', how='left')
+    df = df.merge(s_stats, on='stop_id', how='left')
+    
+    # Fill NAs
+    df['route_delay_rate'] = df['route_delay_rate'].fillna(g_means['route_delay_rate'])
+    df['route_avg_delay'] = df['route_avg_delay'].fillna(g_means['route_avg_delay'])
+    df['route_std_delay'] = df['route_std_delay'].fillna(0)
+    df['route_trip_count'] = df['route_trip_count'].fillna(0)
+    
+    df['stop_delay_rate'] = df['stop_delay_rate'].fillna(g_means['stop_delay_rate'])
+    df['stop_avg_delay'] = df['stop_avg_delay'].fillna(g_means['stop_avg_delay'])
+    df['stop_trip_count'] = df['stop_trip_count'].fillna(0)
+    
+    return df
 
-# ============================================================================
-# PREPARE FEATURES AND TARGET
-# ============================================================================
-print("\n[3/7] Preparing features and target...")
+train_df = apply_stats(train_df, route_stats, stop_stats, global_means)
+test_df = apply_stats(test_df, route_stats, stop_stats, global_means)
 
-# Select features for modeling
+# Prepare Features
 feature_cols = [
-    'hour',
-    'day_of_week',
-    'is_weekend',
-    'is_rush_hour',
-    'route_avg_delay',
-    'route_std_delay',
-    'route_delay_rate',
-    'stop_avg_delay',
-    'stop_delay_rate',
-    'stop_sequence'
+    'hour', 'day_of_week', 'is_weekend', 'is_rush_hour',
+    'route_avg_delay', 'route_std_delay', 'route_delay_rate',
+    'stop_avg_delay', 'stop_delay_rate', 'stop_sequence'
 ]
 
-# Create feature matrix
-X = data[feature_cols].copy()
-y = data['delay_10plus'].values
+X_train = train_df[feature_cols].copy()
+y_train = train_df['delay_10plus'].values
 
-# Handle any remaining NaN values
-X = X.fillna(0)
+X_test = test_df[feature_cols].copy()
+y_test = test_df['delay_10plus'].values
 
-print(f"Feature matrix shape: {X.shape}")
-print(f"Features: {feature_cols}")
-
-# ============================================================================
-# TRAIN/TEST SPLIT
-# ============================================================================
-print("\n[4/7] Splitting data...")
-
-# Time-based split (80/20)
-data_sorted = data.sort_values('timestamp').reset_index(drop=True)
-split_idx = int(len(data_sorted) * 0.8)
-
-X_train = X.iloc[:split_idx]
-X_test = X.iloc[split_idx:]
-y_train = y[:split_idx]
-y_test = y[split_idx:]
-
-print(f"Training set: {len(X_train):,} samples ({y_train.sum()} delays, {y_train.sum()/len(y_train)*100:.2f}%)")
-print(f"Test set: {len(X_test):,} samples ({y_test.sum()} delays, {y_test.sum()/len(y_test)*100:.2f}%)")
-
-# ============================================================================
-# SCALE FEATURES
-# ============================================================================
-print("\n[5/7] Scaling features...")
-
+# Scale
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)

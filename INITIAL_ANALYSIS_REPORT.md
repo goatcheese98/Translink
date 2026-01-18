@@ -127,7 +127,7 @@ We used a time-based train/test split (80/20) to prevent data leakage and simula
 **Analysis:**
 This baseline demonstrates a critical lesson in imbalanced classification: **accuracy is misleading**. Despite achieving 93% accuracy, this predictor is completely useless—it never identifies any delays. This highlights why we focus on precision, recall, and F1 score rather than accuracy alone.
 
-### 2.3 Baseline 2: Route-Based Predictor ⭐ **BEST BASELINE**
+### 2.3 Baseline 2: Route-Based Predictor (Best Baseline)
 
 **Strategy:** Predict delay if the route has a historical delay rate > 5%
 
@@ -397,7 +397,7 @@ Our current features don't capture:
 
 ### 3.8 Future Work and Improvements
 
-**1. Extended Data Collection** ⭐ **HIGHEST PRIORITY**
+**1. Extended Data Collection (Highest Priority)**
 
 **Recommendation:** Collect data continuously for 2-4 weeks with increased frequency
 
@@ -414,11 +414,13 @@ Our current features don't capture:
 - **Improved precision:** Expected increase from 31% to 40-50% with diverse training data
 - **Maintained recall:** Should maintain 85-90% recall while improving precision
 
-**Validation of Your Statement:** ✅ **YES, this is correct!** Running the model for a longer period and increasing the data collection frequency (output rate) will significantly improve performance by:
+The current analysis is based on a single-snapshot dataset, which is a significant limitation. The TransLink GTFS Real-time API provides only the current state of the transit system and does not allow for querying historical data. Therefore, to build a robust dataset for machine learning, the data collection script must be run continuously in the background over an extended period (e.g., 2-4 weeks).
 
-- Capturing temporal patterns currently invisible in single-snapshot data
-- Providing more delay examples across diverse conditions
-- Enabling the model to learn robust patterns rather than snapshot-specific quirks
+Collecting data over a longer period will:
+
+- Capture temporal patterns currently invisible in single-snapshot data
+- Provide more delay examples across diverse conditions
+- Enable the model to learn robust patterns rather than snapshot-specific quirks
 
 **2. Advanced Feature Engineering**
 
@@ -459,149 +461,8 @@ Our current features don't capture:
 - Use voting or stacking to leverage strengths of multiple models
 - Expected impact: +3-5% F1 improvement
 
-**4. Deployment and Real-World Testing**
-
-**API Development:**
-
-- Build REST API for real-time delay predictions
-- Input: route_id, stop_id, current time
-- Output: delay probability and confidence interval
-
-**Web Application Interface:**
+**4. Web Application Interface**
 
 - Develop a simple web interface for users to check delays
 - Allow users to select their route and stop to view real-time delay probabilities
 - Collect user feedback to improve model
-
-**A/B Testing:**
-
-- Deploy to subset of users
-- Measure impact on commuter satisfaction and behavior
-- Iterate based on real-world performance
-
----
-
-## Conclusions
-
-### 4.1 Summary of Achievements
-
-This initial analysis successfully demonstrates the feasibility of predicting major transit delays using machine learning:
-
-1. **Exploratory Analysis (Question 6):**
-   - Identified 8.05% major delay rate with 11.4:1 class imbalance
-   - Discovered significant route and stop-level variation in delay patterns
-   - Established 10-minute threshold as optimal balance between actionability and statistical feasibility
-
-2. **Baseline Benchmarking (Question 7):**
-   - Demonstrated why accuracy is misleading for imbalanced data (93% accuracy but 0% recall)
-   - Established route-based baseline with F1 = 0.0871 as benchmark
-   - Validated that route information has predictive value
-
-3. **Machine Learning Model (Question 8):**
-   - Achieved F1 = 0.4626, a 431% improvement over baseline
-   - Attained 92.35% recall, successfully identifying 495 out of 536 delays
-   - Discovered stop-level delay history as the strongest predictor (5x more important than route-level)
-
-### 4.2 Key Insights
-
-**1. Stop-Level Granularity Matters**
-
-The dominant importance of stop-level features (stop_delay_rate: +1.77 coefficient) reveals that delays are highly localized. This suggests that:
-
-- Infrastructure improvements should target specific high-delay stops
-- Schedule adjustments should account for stop-specific delay patterns
-- Route-level analysis alone is insufficient for accurate predictions
-
-**2. Context is Critical**
-
-The dramatic improvement from baseline (route ID only) to ML model (10 contextual features) demonstrates that delay prediction requires understanding the full context:
-
-- Not just "which route?" but "which route, at which stop, at what time?"
-- Simple rules (e.g., "Route 99 delays") are too coarse
-- Machine learning excels at combining multiple information sources
-
-**3. Class Imbalance Requires Special Handling**
-
-The contrast between majority class baseline (93% accuracy, 0% recall) and balanced logistic regression (75% accuracy, 92% recall) illustrates that:
-
-- Standard accuracy is misleading for rare events
-- Class weighting is essential for imbalanced classification
-- Precision-recall trade-offs must align with application requirements
-
-**4. Data Quantity and Diversity are Limiting Factors**
-
-The zero coefficients for temporal features and modest overall performance (F1 = 0.46) indicate that our single-snapshot dataset is the primary limitation. Extended data collection will unlock substantial improvements.
-
-### 4.3 Practical Viability
-
-**Is this system ready for deployment?**
-
-**Current State:** Proof of concept validated, but not production-ready
-
-**Strengths:**
-
-- ✅ High recall (92%) ensures most delays are caught
-- ✅ Significant improvement over simple rules (+431% F1)
-- ✅ Interpretable model with actionable insights
-
-**Limitations:**
-
-- ⚠️ Modest precision (31%) means many false alarms
-- ⚠️ Single-snapshot data limits generalization
-- ⚠️ Temporal features underutilized
-
-**Path to Production:**
-
-1. **Phase 1 (2-4 weeks):** Extended data collection across diverse conditions
-2. **Phase 2 (1-2 weeks):** Retrain model, expected F1 = 0.50-0.60
-3. **Phase 3 (2-4 weeks):** Beta testing with small user group
-4. **Phase 4 (ongoing):** Full deployment with continuous monitoring and improvement
-
-### 4.4 Final Thoughts
-
-Despite being limited to a single data snapshot, our analysis demonstrates that machine learning can substantially outperform rule-based approaches for transit delay prediction. The 431% improvement in F1 score, achieved through richer features, learned patterns, and proper handling of class imbalance, validates the core approach.
-
-The path forward is clear: **extended data collection is the highest-priority next step**. By running the data collection process continuously for 2-4 weeks with increased frequency (every 5-10 minutes), we expect to achieve F1 scores of 0.50-0.60, making the system viable for real-world deployment.
-
-This initial analysis establishes a strong foundation for a practical transit delay prediction tool that can provide valuable early warnings to commuters, helping them make informed decisions and reduce the frustration of unexpected delays.
-
----
-
-## References
-
-**Data Source:**
-
-- TransLink GTFS Realtime API: <https://gtfsapi.translink.ca/v3/gtfsrealtime>
-- TransLink GTFS Static Data: <https://www.translink.ca/about-us/doing-business-with-translink/app-developer-resources>
-
-**Code Repository:**
-
-- GitHub: <https://github.com/Diennhutvo/transit-delay-prediction>
-- Analysis Notebook: `initial_analysis.ipynb`
-
-**Methodology:**
-
-- Scikit-learn Logistic Regression: <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html>
-- GTFS Realtime Reference: <https://gtfs.org/realtime/>
-
----
-
-## Appendix: Reproducibility
-
-All analysis is fully reproducible using the provided Jupyter notebook:
-
-**To reproduce:**
-
-```bash
-cd transit-delay-prediction
-jupyter notebook initial_analysis.ipynb
-# Run all cells (Cell → Run All)
-```
-
-**Requirements:**
-
-- Python 3.9+
-- pandas, numpy, matplotlib, seaborn, scikit-learn
-- GTFS Realtime data in `data/interim/gtfs_rt/`
-
-**Note:** Results may vary slightly with different data collection periods, but the methodology and conclusions remain valid.
