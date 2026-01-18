@@ -1,0 +1,12 @@
+[
+  "hour",
+  "day_of_week",
+  "is_weekend",
+  "is_rush_hour",
+  "avg_delay_route",
+  "std_delay",
+  "delay_rate_route",
+  "avg_delay_stop",
+  "delay_rate_stop",
+  "stop_sequence"
+]
