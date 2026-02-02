@@ -1,3 +1,147 @@
+# ============================================================================
+# Data & Artifacts (Never commit)
+# ============================================================================
+
+# Raw data
+data/raw/*
+!data/raw/.gitkeep
+data/raw/gtfs_rt/trip_updates/*.pb
+
+# Processed data
+data/processed/*
+!data/processed/.gitkeep
+
+# Features
+data/features/*
+!data/features/.gitkeep
+
+# ML Artifacts
+artifacts/models/*
+!artifacts/models/.gitkeep
+artifacts/metrics/*
+!artifacts/metrics/.gitkeep
+
+# Note: Visualizations are kept for reporting
+
+# ============================================================================
+# Secrets & Credentials (Never commit)
+# ============================================================================
 .env
+.env.local
+.env.production
+.env.*.local
+
+# GCP Service Account Keys
+service-account-key.json
+*-sa-key.json
+gcp-credentials.json
+
+# AWS
+.aws/
+
+# ============================================================================
+# Python
+# ============================================================================
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+ENV/
+env/
+.venv/
+env.bak/
+venv.bak/
+
+# ============================================================================
+# Jupyter Notebook
+# ============================================================================
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+*.ipynb_checkpoints
+
+# ============================================================================
+# IDEs & Editors
+# ============================================================================
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+.#*
+
+# ============================================================================
+# OS Generated Files
+# ============================================================================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================================================
+# Testing & Coverage
+# ============================================================================
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# ============================================================================
+# Logs
+# ============================================================================
+*.log
+logs/
+*.out
+
+# ============================================================================
+# Terraform (if used)
+# ============================================================================
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# ============================================================================
+# Misc
+# ============================================================================
+*.bak
+*.tmp
+*.temp
