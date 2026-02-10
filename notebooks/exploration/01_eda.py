@@ -13,9 +13,19 @@ import numpy as np
 sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (12, 6)
 
-# Load the parsed realtime data
-csv_files = sorted(Path("data/interim/gtfs_rt").glob("trip_updates_parsed_*.csv"))
+# Navigate to project root (script is in notebooks/exploration/)
+project_root = Path(__file__).parent.parent.parent
+csv_files = sorted(project_root.glob("data/interim/gtfs_rt/trip_updates_parsed_*.csv"))
 print(f"Found {len(csv_files)} CSV files")
+
+# Check if any files were found
+if not csv_files:
+    raise FileNotFoundError(
+        "No CSV files found in 'data/interim/gtfs_rt/' matching pattern 'trip_updates_parsed_*.csv'.\n"
+        "Please run the data collection and parsing modules first:\n"
+        "  1. python -m src.data.collector --local\n"
+        "  2. python -m src.data.parser data/raw/gtfs_rt/trip_updates --output data/interim/gtfs_rt"
+    )
 
 # Load all data
 dfs = []

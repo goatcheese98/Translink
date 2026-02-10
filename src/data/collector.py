@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Optional, Union
 
 import requests
-from google.cloud import storage
 
 # Setup logging
 logging.basicConfig(
@@ -57,6 +56,7 @@ class TransLinkCollector:
         self.bucket_name = bucket_name or os.getenv('GCS_RAW_BUCKET')
         
         if self.use_gcs:
+            from google.cloud import storage
             if not self.bucket_name:
                 raise ValueError("GCS bucket required. Set GCS_RAW_BUCKET env var.")
             self.storage_client = storage.Client()

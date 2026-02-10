@@ -11,7 +11,6 @@ from typing import List, Optional, Union
 
 import pandas as pd
 from google.transit import gtfs_realtime_pb2
-from google.cloud import storage
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,6 +33,7 @@ class GTFSRTParser:
         self.use_gcs = use_gcs
         
         if use_gcs:
+            from google.cloud import storage
             if not bucket_name:
                 raise ValueError("bucket_name required when use_gcs=True")
             self.storage_client = storage.Client()
